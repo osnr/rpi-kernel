@@ -1,11 +1,26 @@
-kernel.img: kernel.elf
-	arm-none-eabi-objcopy kernel.elf -O binary kernel.img
+OBJCOPY=arm-none-eabi-objcopy
+OBJDUMP=arm-none-eabi-objdump
 
-kernel.elf: kernel.o
-	arm-none-eabi-gcc -O0 -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -nostartfiles kernel.o -o kernel.elf
+TARGET=arm-unknown-linux-gnueabihf
 
-%.o: %.rs
-	rustc --target arm-unknown-linux-gnueabihf -O --emit=obj $< -o $@
+# Files
+OUT_DIR=target/$(TARGET)/debug
+NAME=kernel
 
-install: kernel.img
-	rpi-install.py kernel.img
+.PHONY: build clean listing $(OUT_FILE)
+
+all: build listing
+build: $(OUT_DIR)/$(NAME).bin
+listing: $(OUT_DIR)/$(NAME).list
+
+$(OUT_DIR)/lib$(NAME).a:
+	cargo rustc --target=arm-unknown-linux-gnueabihf --verbose
+
+$(OUT_DIR)/%.bin: $(OUT_DIR)/lib%.a
+	$(OBJCOPY) -O binary $< $@
+
+$(OUT_DIR)/%.list: $(OUT_DIR)/lib%.a
+	$(OBJDUMP) -D $< > $@
+
+clean:
+	cargo clean
