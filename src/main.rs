@@ -1,4 +1,5 @@
 #![feature(lang_items, asm)]
+#![crate_type = "staticlib"]
 #![no_std]
 
 mod gpio;
