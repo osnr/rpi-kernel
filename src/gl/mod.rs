@@ -50,16 +50,14 @@ static mut fb_config: FbConfig = FbConfig {
 };
 
 pub fn init() {
-    unsafe {
-        let uncached_fb_config_addr = (&mut fb_config as *mut FbConfig as u32) + GPU_NOCACHE;
+    let uncached_fb_config_addr = unsafe { (&mut fb_config as *mut FbConfig as u32) + GPU_NOCACHE };
 
-        mailbox::write(mailbox::Channel::Framebuffer, uncached_fb_config_addr);
-        mailbox::read(mailbox::Channel::Framebuffer);
-    }
+    mailbox::write(mailbox::Channel::Framebuffer, uncached_fb_config_addr);
+    mailbox::read(mailbox::Channel::Framebuffer);
 }
 
-unsafe fn get_fb() -> &'static mut [u32] {
-    return slice::from_raw_parts_mut(fb_config.framebuffer as *mut u32, (fb_config.size / 4) as usize);
+fn get_fb() -> &'static mut [u32] {
+    return unsafe { slice::from_raw_parts_mut(fb_config.framebuffer as *mut u32, (fb_config.size / 4) as usize) };
 }
 
 pub fn set_pixel(color: u32, x: usize, y: usize) {

@@ -1,7 +1,6 @@
 #![feature(lang_items, asm, repr_simd)]
 #![no_std]
 
-mod gl;
 mod gpio;
 mod timer;
 
@@ -9,15 +8,13 @@ mod timer;
 mod uart;
 use core::fmt::Write;
 
+mod gl;
+
 #[no_mangle]
 pub extern fn main() {
-    timer::sleep(50000);
+    timer::sleep(500000);
 
     uart::init();
-    loop {
-        println!("hello {}", 300);
-        timer::sleep(5000000);
-    }
 
     gl::init();
 
