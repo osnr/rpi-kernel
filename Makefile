@@ -18,7 +18,7 @@ kernel.img: kernel.elf
 kernel.list: kernel.img
 	$(OBJDUMP) -d kernel.elf > kernel.list
 
-kernel.elf: src/start.o src/main.o
+kernel.elf: src/start.o src/interrupts_asm.s src/main.o
 	arm-none-eabi-gcc -O0 -g -Wl,-gc-sections -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -nostdlib $^ -o $@
 
 %.o: %.rs $(SOURCES)

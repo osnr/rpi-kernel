@@ -1,13 +1,19 @@
 #![feature(lang_items, asm, repr_simd, core_intrinsics)]
 #![no_std]
 
+pub mod interrupts;
+
+mod ringbuf;
+mod keyboard;
 mod gpio;
 mod timer;
 
 #[macro_use]
 mod uart;
 
-use core::intrinsics::{volatile_load, volatile_store};
+use core::intrinsics::volatile_store;
+
+use core::fmt::Arguments;
 
 mod gl;
 
@@ -16,22 +22,47 @@ pub extern fn main() {
     timer::sleep(500000);
 
     uart::init();
-
+    keyboard::init();
     gl::init();
+    
+    interrupts::enable();
 
     gl::put_str("hello", 0, 0);
 
-    // let mut prev_pin = false;
+    let mut x = 0;
     loop {
-        // prev_pin = !prev_pin;
-        // gpio::write(gpio::Pin::Rx, prev_pin); // Same as Act LED.
+        let wut = gpio::read(gpio::Pin::TwentyFour);
 
         let c = uart::getc();
-        if c == 'r' as u8 {
+        if c == '`' as u8 {
             reset();
         } else {
+            gl::put_char(c, x, 13);
+            
+            x += 8;
             uart::putc(c);
+            println!("\nclock says: {}", wut);
         }
+
+        // let c = keyboard::wait_for_char();
+        // println!("{:x}", c);
+    }
+}
+
+const RPI_VECTOR_START: u32 = 0x0;
+
+#[no_mangle]
+pub extern fn prologue(table_start: isize, table_end: isize) {
+    let vector: *mut u32 = RPI_VECTOR_START as *mut u32;
+
+    let mut table = table_start;
+    while table < table_end {
+        let there = unsafe { vector.offset((table - table_start) / 4) };
+        let here = table as *mut u32;
+
+        unsafe { *there = *here; }
+
+        table += 4;
     }
 }
 
@@ -53,7 +84,14 @@ fn reset() {
 }
 
 #[lang = "eh_personality"] extern fn eh_personality() {}
-#[lang = "panic_fmt"] extern fn panic_fmt() {}
+#[lang = "panic_fmt"] extern fn panic_fmt(fmt: Arguments, file_line: &(&'static str, u32)) {
+    loop {
+        uart::get_uart().write_fmt(fmt);
+        gpio::write(gpio::Pin::Rx, true);
+        println!("at {}:{}", file_line.0, file_line.1);
+        gpio::write(gpio::Pin::Rx, false);
+    }
+}
 #[no_mangle] pub extern fn __aeabi_unwind_cpp_pr0() {}
 #[no_mangle] pub extern fn __aeabi_unwind_cpp_pr1() {}
 
@@ -66,4 +104,13 @@ pub unsafe extern fn memcpy(dest: *mut u8, src: *const u8,
         i += 1;
     }
     return dest;
+}
+#[no_mangle]
+pub unsafe extern fn memset(s: *mut u8, c: i32, n: usize) -> *mut u8 {
+    let mut i = 0;
+    while i < n {
+        *s.offset(i as isize) = c as u8;
+        i += 1;
+    }
+    return s;
 }

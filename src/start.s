@@ -7,6 +7,11 @@ _start:
     mov r0, #0xD3    @ SVC mode
     msr cpsr_c, r0   @ Put in SVC mode, don't clear C bits
     mov sp, #0x7000  @ Set SVC stack pointer
+
+    ldr r0, =_table
+    ldr r1, =_table_end
+    bl prologue
+
     bl main       @ Jump to C start routine
 
 hang:

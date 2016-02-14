@@ -35,7 +35,7 @@ struct Mailbox {
 pub fn write(channel: Channel, addr: u32) {
     // addr must be a multiple of 16.
     if (addr & 0xFu32) != 0 {
-        gpio::write(gpio::Pin::Rx, true);
+        panic!();
         return;
     }
 

@@ -1,6 +1,6 @@
 use core::slice;
 
-use core::intrinsics::{volatile_load, volatile_store};
+use core::intrinsics::{volatile_store};
 
 mod mailbox;
 mod font;
@@ -75,12 +75,7 @@ pub fn put_pixel(color: u32, x: usize, y: usize) {
 }
 
 pub fn put_char(c: u8, x: usize, y: usize) {
-    use gpio;
-    gpio::write(gpio::Pin::Rx, true);
-
     let glyph: [u8; 13] = font::FONT[c as usize - 32];
-
-    gpio::write(gpio::Pin::Rx, false);
 
     for row in 0..13 {
         for col in 0..8 {
