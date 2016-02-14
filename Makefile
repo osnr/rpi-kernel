@@ -19,16 +19,20 @@ kernel.list: kernel.img
 	$(OBJDUMP) -d kernel.elf > kernel.list
 
 kernel.elf: src/start.o src/main.o
-	arm-none-eabi-gcc -O0 -Wl,-gc-sections -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -nostdlib $^ -o $@
+	arm-none-eabi-gcc -O0 -g -Wl,-gc-sections -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -nostdlib $^ -o $@
 
 %.o: %.rs $(SOURCES)
-	rustc --target arm-unknown-linux-gnueabihf -O -L /Users/osnr/dev --crate-type="staticlib" $< -o $@
+	rustc --target arm-unknown-linux-gnueabihf -g -L /Users/osnr/dev --crate-type="staticlib" $< -o $@
 
 %.o: %.s
 	arm-none-eabi-as $< -o $@
 
 install: clean kernel.img
 	rpi-install.py kernel.img
+
+install-screen: install
+	sleep 5
+	screen /dev/tty.SLAB_USBtoUART 115200
 
 clean:
 	rm -f kernel.img

@@ -1,3 +1,6 @@
+use gpio;
+use core::intrinsics::{volatile_load, volatile_store};
+
 const MAILBOX_BASE: u32 = 0x2000B880;
 
 #[allow(dead_code)]
@@ -18,9 +21,10 @@ const MAILBOX_FULL: u32 = 1 << 31;
 const MAILBOX_EMPTY: u32 = 1 << 30;
 
 #[allow(dead_code)]
+#[repr(C)]
 struct Mailbox {
     read: u32,
-    padding: [u32; 3],
+    _padding: [u32; 3],
     peek: u32,
     sender: u32,
     status: u32,
@@ -30,27 +34,33 @@ struct Mailbox {
 
 pub fn write(channel: Channel, addr: u32) {
     // addr must be a multiple of 16.
-    if addr & 0xFu32 != 0 { return };
+    if (addr & 0xFu32) != 0 {
+        gpio::write(gpio::Pin::Rx, true);
+        return;
+    }
 
     let mailbox = MAILBOX_BASE as *mut Mailbox;
     unsafe {
+        let mailbox_status = &mut(*mailbox).status as *mut u32;
         // TODO Can I do this better?
-        while (*mailbox).status & MAILBOX_FULL != 0 {
+        while volatile_load(mailbox_status) & MAILBOX_FULL != 0 {
             asm!("");
         }
 
-        (*mailbox).write = addr + (channel as u32);
+        let mailbox_write = &mut(*mailbox).write as *mut u32;
+        volatile_store(mailbox_write, addr + (channel as u32));
     }
 }
 
 pub fn read(channel: Channel) -> bool {
     let mailbox = MAILBOX_BASE as *mut Mailbox;
     unsafe {
-        while (*mailbox).status & MAILBOX_EMPTY != 0 {
+        let mailbox_status = &mut(*mailbox).status as *const u32;
+        while volatile_load(mailbox_status) & MAILBOX_EMPTY != 0 {
             asm!("");
         }
 
-        let ra = (*mailbox).read;
+        let ra = volatile_load(&(*mailbox).read as *const u32);
         if (ra & 0xF) == (channel as u32) {
             return (ra >> 4) == 0;
         }

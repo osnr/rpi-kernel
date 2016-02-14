@@ -1,16 +1,18 @@
-#[repr(simd)]
-
 use core::slice;
 
+use core::intrinsics::{volatile_load, volatile_store};
+
 mod mailbox;
+mod font;
 
 const GPU_NOCACHE: u32 = 0x40000000;
 
-const WIDTH: u32 = 20;
-const HEIGHT: u32 = 20;
+const WIDTH: u32 = 320;
+const HEIGHT: u32 = 240;
 
-struct SixteenBytes(u64, u64);
+// The simd is a giant alignment hack.
 #[allow(dead_code)]
+#[repr(C, simd)]
 struct FbConfig {
     width: u32,
     height: u32,
@@ -27,7 +29,9 @@ struct FbConfig {
     framebuffer: u32,
 
     size: u32,
-    _align: [SixteenBytes; 0],
+
+    _align1: u32,
+    _align2: u32,
 }
 
 static mut fb_config: FbConfig = FbConfig {
@@ -46,7 +50,8 @@ static mut fb_config: FbConfig = FbConfig {
     framebuffer: 0,
     size: 0,
 
-    _align: [],
+    _align1: 0,
+    _align2: 0,
 };
 
 pub fn init() {
@@ -60,8 +65,44 @@ fn get_fb() -> &'static mut [u32] {
     return unsafe { slice::from_raw_parts_mut(fb_config.framebuffer as *mut u32, (fb_config.size / 4) as usize) };
 }
 
-pub fn set_pixel(color: u32, x: usize, y: usize) {
-    unsafe {
-        get_fb()[(y * fb_config.width as usize) + x] = color;
+fn get_width() -> usize {
+    return unsafe { fb_config.width as usize };
+}
+
+pub fn put_pixel(color: u32, x: usize, y: usize) {
+    let pixel: *mut u32 = &mut get_fb()[(y * get_width()) + x] as *mut u32;
+    unsafe { volatile_store(pixel, color); }
+}
+
+pub fn put_char(c: u8, x: usize, y: usize) {
+    use gpio;
+    gpio::write(gpio::Pin::Rx, true);
+
+    let glyph: [u8; 13] = font::FONT[c as usize - 32];
+
+    gpio::write(gpio::Pin::Rx, false);
+
+    for row in 0..13 {
+        for col in 0..8 {
+            let pixel_bw = (glyph[row] >> col) & 1;
+
+            let color =
+                if pixel_bw == 0 {
+                    0xFF000000
+                } else {
+                    0xFFFFFFFF
+                };
+
+            put_pixel(color, x + 8 - col, y + 12 - row);
+        }
+    }
+}
+
+pub fn put_str(s: &str, x: usize, y: usize) {
+    let mut new_x = x;
+
+    for c in s.as_bytes() {
+        put_char(*c, new_x, y);
+        new_x += 8;
     }
 }

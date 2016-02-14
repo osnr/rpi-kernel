@@ -3,6 +3,7 @@ use gpio;
 use core::fmt;
 
 #[allow(dead_code)]
+#[repr(C)]
 pub struct Uart {
     data: u32, // I/O Data
     ier: u32,  // Interupt enable
@@ -73,7 +74,7 @@ pub fn init() {
 }
 
 #[allow(dead_code)]
-fn getc() -> u8 {
+pub fn getc() -> u8 {
     let uart = get_uart();
     while uart.lsr & AUX_MU_LSR_RX_READY == 0 {
         unsafe { asm!(""); }
@@ -82,7 +83,7 @@ fn getc() -> u8 {
     return (uart.data & 0xFFu32) as u8;
 }
 
-fn putc(c: u8) {
+pub fn putc(c: u8) {
     let uart = get_uart();
     if c == '\n' as u8 {
         putc('\r' as u8);
@@ -106,7 +107,7 @@ impl fmt::Write for Uart {
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => (uart::get_uart().write_fmt(format_args!($($arg)*)).ok());
+    ($($arg:tt)*) => (use core::fmt::Write; uart::get_uart().write_fmt(format_args!($($arg)*)).ok());
 }
 
 #[macro_export]
