@@ -7,11 +7,10 @@ mod ringbuf;
 mod keyboard;
 mod gpio;
 mod timer;
+#[macro_use] mod uart;
+mod reset;
 
-#[macro_use]
-mod uart;
-
-use core::intrinsics::volatile_store;
+mod console;
 
 use core::fmt::Arguments;
 
@@ -27,27 +26,8 @@ pub extern fn main() {
     
     interrupts::enable();
 
-    gl::put_str("hello", 0, 0);
-
-    let mut x = 0;
-    loop {
-        if uart::hasc() {
-            let c = uart::getc();
-            if c == '`' as u8 {
-                reset();
-            } else {
-                gl::put_char(c, x, 13);
-                
-                x += 8;
-                uart::putc(c);
-            }
-        }
-
-        if keyboard::has_char() {
-            gpio::write(gpio::Pin::Rx, true);
-            println!("GOT {}", keyboard::read_char());
-        }
-    }
+    let mut console = console::Console { row: 0, col: 0 };
+    console.run();
 }
 
 const RPI_VECTOR_START: u32 = 0x0;
@@ -67,30 +47,14 @@ pub extern fn prologue(table_start: isize, table_end: isize) {
     }
 }
 
-const PM_RSTC: u32 = 0x2010001c;
-const PM_WDOG: u32 = 0x20100024;
-const PM_PASSWORD: u32 = 0x5a000000;
-const PM_RSTC_WRCFG_FULL_RESET: u32 = 0x00000020;
-
-fn reset() {
-    timer::sleep(100000);
-
-    // timeout = 1/16th of a second? (whatever)
-    unsafe {
-        volatile_store(PM_WDOG as *mut u32, PM_PASSWORD | 1);
-        volatile_store(PM_RSTC as *mut u32, PM_PASSWORD | PM_RSTC_WRCFG_FULL_RESET);
-    }
-
-    loop { unsafe { asm!(""); } }
-}
-
 #[lang = "eh_personality"] extern fn eh_personality() {}
 #[lang = "panic_fmt"] extern fn panic_fmt(fmt: Arguments, file_line: &(&'static str, u32)) {
     loop {
+        use core::fmt::Write;
         uart::get_uart().write_fmt(fmt);
-        gpio::write(gpio::Pin::Rx, true);
-        println!("at {}", file_line.1);
-        gpio::write(gpio::Pin::Rx, false);
+
+        timer::sleep(5000000);
+        reset::reset();
     }
 }
 #[no_mangle] pub extern fn __aeabi_unwind_cpp_pr0() {}
@@ -114,4 +78,17 @@ pub unsafe extern fn memset(s: *mut u8, c: i32, n: usize) -> *mut u8 {
         i += 1;
     }
     return s;
+}
+#[no_mangle]
+pub unsafe extern fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
+    let mut i = 0;
+    while i < n {
+        let a = *s1.offset(i as isize);
+        let b = *s2.offset(i as isize);
+        if a != b {
+            return a as i32 - b as i32
+        }
+        i += 1;
+    }
+    return 0;
 }

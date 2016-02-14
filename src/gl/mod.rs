@@ -3,12 +3,12 @@ use core::slice;
 use core::intrinsics::{volatile_store};
 
 mod mailbox;
-mod font;
+pub mod font;
 
 const GPU_NOCACHE: u32 = 0x40000000;
 
-const WIDTH: u32 = 320;
-const HEIGHT: u32 = 240;
+pub const WIDTH: usize = 320;
+pub const HEIGHT: usize = 240;
 
 // The simd is a giant alignment hack.
 #[allow(dead_code)]
@@ -35,11 +35,11 @@ struct FbConfig {
 }
 
 static mut fb_config: FbConfig = FbConfig {
-    width: WIDTH,
-    height: HEIGHT,
+    width: WIDTH as u32,
+    height: HEIGHT as u32,
 
-    virtual_width: WIDTH,
-    virtual_height: HEIGHT,
+    virtual_width: WIDTH as u32,
+    virtual_height: HEIGHT as u32,
 
     depth: 32,
     x_offset: 0,
@@ -77,8 +77,8 @@ pub fn put_pixel(color: u32, x: usize, y: usize) {
 pub fn put_char(c: u8, x: usize, y: usize) {
     let glyph: [u8; 13] = font::FONT[c as usize - 32];
 
-    for row in 0..13 {
-        for col in 0..8 {
+    for row in 0..font::HEIGHT {
+        for col in 0..font::WIDTH {
             let pixel_bw = (glyph[row] >> col) & 1;
 
             let color =

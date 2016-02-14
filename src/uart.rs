@@ -112,7 +112,7 @@ impl fmt::Write for Uart {
 
 #[macro_export]
 macro_rules! print {
-    ($($arg:tt)*) => (use core::fmt::Write; uart::get_uart().write_fmt(format_args!($($arg)*)).ok());
+    ($($arg:tt)*) => (uart::get_uart().write_fmt(format_args!($($arg)*)).ok());
 }
 
 #[macro_export]

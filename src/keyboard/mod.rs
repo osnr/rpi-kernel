@@ -86,9 +86,9 @@ pub fn has_char() -> bool {
     }
 }
 
-pub fn read_char() -> char {
+pub fn read_char() -> u8 {
     let c = unsafe { last_char.unwrap() };
     unsafe { last_char = None; }
 
-    return c;
+    return c as u8;
 }
