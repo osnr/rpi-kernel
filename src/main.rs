@@ -16,6 +16,8 @@ use core::fmt::Arguments;
 
 mod gl;
 
+static mut console: console::Console = console::Console { row: 0, col: 0 };
+
 #[no_mangle]
 pub extern fn main() {
     timer::sleep(500000);
@@ -26,8 +28,7 @@ pub extern fn main() {
     
     interrupts::enable();
 
-    let mut console = console::Console { row: 0, col: 0 };
-    console.run();
+    unsafe { console.run(); }
 }
 
 const RPI_VECTOR_START: u32 = 0x0;
@@ -49,8 +50,13 @@ pub extern fn prologue(table_start: isize, table_end: isize) {
 
 #[lang = "eh_personality"] extern fn eh_personality() {}
 #[lang = "panic_fmt"] extern fn panic_fmt(fmt: Arguments, file_line: &(&'static str, u32)) {
+    use core::fmt::Write;
+    unsafe {
+        console.write_str("\n");
+        console.write_fmt(fmt);
+        console.write_str("\n");
+    }
     loop {
-        use core::fmt::Write;
         uart::get_uart().write_fmt(fmt);
 
         timer::sleep(5000000);

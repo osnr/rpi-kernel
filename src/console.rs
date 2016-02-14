@@ -24,8 +24,6 @@ impl Console {
 
             self.readln(&mut buf);
             self.eval(unsafe { str::from_utf8_unchecked(&buf) });
-
-            gpio::write(gpio::Pin::Rx, true);
         }
     }
 
@@ -35,7 +33,7 @@ impl Console {
         }
     }
 
-    fn println(&mut self, s: &str) {
+    pub fn println(&mut self, s: &str) {
         self.print(s);
         self.print("\n");
     }
@@ -45,7 +43,7 @@ impl Console {
         }
     }
     fn putchar(&mut self, c: u8) {
-        if c >= 32 {
+        if c >= 32 && (c + 32) < 95 {
             gl::put_char(c, self.col * font::WIDTH, self.row * font::HEIGHT);
 
             self.col += 1;
@@ -89,5 +87,13 @@ impl Console {
                 }
             }
         }
+    }
+}
+
+
+impl fmt::Write for Console {
+    fn write_str(&mut self, s: &str) -> Result<(), fmt::Error> {
+        self.print(s);
+        return Ok(());
     }
 }
