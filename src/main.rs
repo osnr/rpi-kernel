@@ -31,21 +31,18 @@ pub extern fn main() {
 
     let mut x = 0;
     loop {
-        let wut = gpio::read(gpio::Pin::TwentyFour);
-
-        let c = uart::getc();
-        if c == '`' as u8 {
-            reset();
-        } else {
-            gl::put_char(c, x, 13);
+        // let c = uart::getc();
+        // if c == '`' as u8 {
+        //     reset();
+        // } else {
+        //     gl::put_char(c, x, 13);
             
-            x += 8;
-            uart::putc(c);
-            println!("\nclock says: {}", wut);
-        }
+        //     x += 8;
+        //     uart::putc(c);
+        // }
 
-        // let c = keyboard::wait_for_char();
-        // println!("{:x}", c);
+        let c = keyboard::wait_for_char();
+        println!("{:x}", c);
     }
 }
 

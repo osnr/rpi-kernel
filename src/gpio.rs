@@ -81,7 +81,7 @@ pub fn read(pin: Pin) -> bool {
     let mut val = unsafe { volatile_load(reg) };
     val = val >> (pin_num % 32);
 
-    return val != 0;
+    return (val & 1) != 0;
 }
 
 pub fn set_mode(pin: Pin, mode: Mode) {
@@ -105,15 +105,12 @@ fn system_memory_write_barrier() {
   unsafe { asm!("mcr p15, 0, $0, c7, c10, 4" : : "r" (0) : "memory" : "volatile"); }
 }
 
-fn pin_to_falling_register(pin: Pin) -> u32 {
-  if pin as u32 <= 31 {
-    GPFEN0
-  } else {
-    GPFEN1
-  }
-}
 pub fn detect_falling_edge(pin: Pin) {
-    let reg = pin_to_falling_register(pin) as *mut u32;
+    let reg = if pin as u32 <= 31 {
+        GPFEN0
+    } else {
+        GPFEN1
+    } as *mut u32;
     let offset = (pin as u32) % 32;
 
     system_memory_read_barrier();

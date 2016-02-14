@@ -49,8 +49,6 @@ enum Ps2 {
 static mut scan: Ps2 = Ps2::AwaitingStart;
 
 pub unsafe fn interrupt() {
-    gpio::write(gpio::Pin::Rx, true);
-
     match scan {
         Ps2::AwaitingStart => {
             if !gpio::read(DATA) {
@@ -98,7 +96,7 @@ pub unsafe fn interrupt() {
             }
         },
     }
-    
+
     gpio::check_and_clear_event(CLOCK);
 }
 
