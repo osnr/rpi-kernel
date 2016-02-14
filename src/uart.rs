@@ -1,4 +1,5 @@
 use gpio;
+use core::intrinsics::volatile_load;
 
 use core::fmt;
 
@@ -73,7 +74,11 @@ pub fn init() {
     uart.cntl = AUX_MU_CNTL_TX_ENABLE|AUX_MU_CNTL_RX_ENABLE;
 }
 
-#[allow(dead_code)]
+pub fn hasc() -> bool {
+    let lsr = &get_uart().lsr as *const u32;
+    return unsafe { volatile_load(lsr) } & AUX_MU_LSR_RX_READY != 0;
+}
+
 pub fn getc() -> u8 {
     let uart = get_uart();
     while uart.lsr & AUX_MU_LSR_RX_READY == 0 {

@@ -36,7 +36,6 @@ pub fn write(channel: Channel, addr: u32) {
     // addr must be a multiple of 16.
     if (addr & 0xFu32) != 0 {
         panic!();
-        return;
     }
 
     let mailbox = MAILBOX_BASE as *mut Mailbox;

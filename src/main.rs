@@ -31,18 +31,22 @@ pub extern fn main() {
 
     let mut x = 0;
     loop {
-        // let c = uart::getc();
-        // if c == '`' as u8 {
-        //     reset();
-        // } else {
-        //     gl::put_char(c, x, 13);
-            
-        //     x += 8;
-        //     uart::putc(c);
-        // }
+        if uart::hasc() {
+            let c = uart::getc();
+            if c == '`' as u8 {
+                reset();
+            } else {
+                gl::put_char(c, x, 13);
+                
+                x += 8;
+                uart::putc(c);
+            }
+        }
 
-        let c = keyboard::wait_for_char();
-        println!("{:x}", c);
+        if keyboard::has_char() {
+            gpio::write(gpio::Pin::Rx, true);
+            println!("GOT {}", keyboard::read_char());
+        }
     }
 }
 
@@ -85,7 +89,7 @@ fn reset() {
     loop {
         uart::get_uart().write_fmt(fmt);
         gpio::write(gpio::Pin::Rx, true);
-        println!("at {}:{}", file_line.0, file_line.1);
+        println!("at {}", file_line.1);
         gpio::write(gpio::Pin::Rx, false);
     }
 }
