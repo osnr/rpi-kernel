@@ -1,7 +1,5 @@
 use core::str;
 
-use main;
-
 use uart;
 use keyboard;
 use gl;
@@ -32,11 +30,8 @@ impl Console {
     }
 
     fn eval(&self, s: &str) {
-        match s {
-            "reset" => {
-                reset::reset();
-            },
-            _ => {}
+        if s.starts_with("reset") {
+            reset::reset();
         }
     }
 
@@ -60,6 +55,12 @@ impl Console {
             }
         } else if c == '\n' as u8 {
             self.row += 1;
+            self.col = 0;
+        }
+
+        if self.row * font::HEIGHT >= gl::HEIGHT {
+            gl::clear();
+            self.row = 0;
             self.col = 0;
         }
     }

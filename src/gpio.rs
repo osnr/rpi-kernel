@@ -3,11 +3,11 @@ use core::intrinsics::{volatile_load, volatile_store};
 const GPIO_BASE: u32 = 0x20200000;
 
 // Pin output set: Set an output pin to be 1
-const GPSET0: u32 = 0x2020001C;
-const GPSET1: u32 = 0x20200020;
+// const GPSET0: u32 = 0x2020001C;
+// const GPSET1: u32 = 0x20200020;
 // Pin output clear: Set an output pin to be 0
-const GPCLR0: u32 = 0x20200028;
-const GPCLR1: u32 = 0x2020002C;
+// const GPCLR0: u32 = 0x20200028;
+// const GPCLR1: u32 = 0x2020002C;
 // Pin level: read a pin (high or low)
 const GPLEV0: u32 = 0x20200034;
 const GPLEV1: u32 = 0x20200038;
@@ -15,29 +15,29 @@ const GPLEV1: u32 = 0x20200038;
 const GPEDS0: u32 = 0x20200040;
 const GPEDS1: u32 = 0x20200044;
 // Pin rising edge detect 
-const GPREN0: u32 = 0x2020004C;
-const GPREN1: u32 = 0x20200050;
+// const GPREN0: u32 = 0x2020004C;
+// const GPREN1: u32 = 0x20200050;
 // Pin falling edge detect 
 const GPFEN0: u32 = 0x20200058;
 const GPFEN1: u32 = 0x2020005C;
 // Pin high detect
-const GPHEN0: u32 = 0x20200064;
-const GPHEN1: u32 = 0x20200068;
+// const GPHEN0: u32 = 0x20200064;
+// const GPHEN1: u32 = 0x20200068;
 // Pin low detect
-const GPLEN0: u32 = 0x20200070;
-const GPLEN1: u32 = 0x20200074;
+// const GPLEN0: u32 = 0x20200070;
+// const GPLEN1: u32 = 0x20200074;
 // Pin async rising edge detect
-const GPAREN0: u32 = 0x2020007C;
-const GPAREN1: u32 = 0x20200080;
+// const GPAREN0: u32 = 0x2020007C;
+// const GPAREN1: u32 = 0x20200080;
 // Pin async falling edge detect
-const GPAFEN0: u32 = 0x20200088;
-const GPAFEN1: u32 = 0x2020008C;
+// const GPAFEN0: u32 = 0x20200088;
+// const GPAFEN1: u32 = 0x2020008C;
 
 // Pin pull-up/pull-down enable
-const GPPUD: u32 = 0x20200094;
+// const GPPUD: u32 = 0x20200094;
 // Pin pull-up/pull-down enabe clock
-const GPPUDCLK0: u32 = 0x20200098;
-const GPPUDCLK1: u32 = 0x2020009C;
+// const GPPUDCLK0: u32 = 0x20200098;
+// const GPPUDCLK1: u32 = 0x2020009C;
 
 
 #[allow(dead_code)]

@@ -7,15 +7,9 @@ use ringbuf::Buf;
 const CLOCK: gpio::Pin = gpio::Pin::TwentyThree;
 const DATA: gpio::Pin = gpio::Pin::TwentyFour;
 
-const INTERRUPT_ENABLE_1: u32 = 0x2000b210;
 const INTERRUPT_ENABLE_2: u32 = 0x2000b214;
 const INTERRUPT_DISABLE_1: u32 = 0x2000b21c;
 const INTERRUPT_DISABLE_2: u32 = 0x2000b220;
-
-const GPLEV0: u32 = 0x20200034;
-const GPLEV1: u32 = 0x20200038;
-const GPEDS0: u32 = 0x20200040;
-const GPEDS1: u32 = 0x20200044;
 
 pub fn init() {
     unsafe {

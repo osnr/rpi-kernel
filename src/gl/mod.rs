@@ -7,8 +7,8 @@ pub mod font;
 
 const GPU_NOCACHE: u32 = 0x40000000;
 
-pub const WIDTH: usize = 320;
-pub const HEIGHT: usize = 240;
+pub const WIDTH: usize = 640;
+pub const HEIGHT: usize = 480;
 
 // The simd is a giant alignment hack.
 #[allow(dead_code)]
@@ -93,11 +93,10 @@ pub fn put_char(c: u8, x: usize, y: usize) {
     }
 }
 
-pub fn put_str(s: &str, x: usize, y: usize) {
-    let mut new_x = x;
-
-    for c in s.as_bytes() {
-        put_char(*c, new_x, y);
-        new_x += 8;
+pub fn clear() {
+    for y in 0..HEIGHT {
+        for x in 0..WIDTH {
+            put_pixel(0xFF000000, x, y);
+        }
     }
 }

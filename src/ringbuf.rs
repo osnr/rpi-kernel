@@ -13,6 +13,7 @@ impl<T: Copy> Buf<T> {
         return self.tail == self.head;
     }
 
+    #[allow(dead_code)]
     pub fn full(&self) -> bool {
         let next_tail = (self.tail + 1) % SIZE;
         return next_tail == self.head;

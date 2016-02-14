@@ -17,17 +17,14 @@ pub fn wait_for_next_scan() -> u8 {
 const SCAN_RELEASE: u8 = 0xF0;
 const SCAN_SPECIAL: u8 = 0xE0;
 
-const SCAN_SPECIAL_LEFT: u8 = 0x6B;
-const SCAN_SPECIAL_RIGHT: u8 = 0x74;
-const SCAN_SPECIAL_UP: u8 = 0x75;
-const SCAN_SPECIAL_DOWN: u8 = 0x72;
+// const SCAN_SPECIAL_LEFT: u8 = 0x6B;
+// const SCAN_SPECIAL_RIGHT: u8 = 0x74;
+// const SCAN_SPECIAL_UP: u8 = 0x75;
+// const SCAN_SPECIAL_DOWN: u8 = 0x72;
 
 const SCAN_LSHIFT: u8 = 0x12;
 const SCAN_RSHIFT: u8 = 0x59;
 const SCAN_CAPSLOCK: u8 = 0x58;
-
-const SCAN_FAIL: u8 = 0xFF;
-const READ_FAIL: u8 = 0xFF;
 
 static mut shift: bool = false;
 static mut capslock: bool = false;
@@ -55,7 +52,7 @@ pub fn has_char() -> bool {
         },
 
         SCAN_SPECIAL => {
-            let scan = wait_for_next_scan();
+            wait_for_next_scan();
 
             // TODO: Handle arrow keys here.
 

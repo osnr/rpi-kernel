@@ -1,4 +1,3 @@
-use gpio;
 use core::intrinsics::{volatile_load, volatile_store};
 
 const MAILBOX_BASE: u32 = 0x2000B880;
