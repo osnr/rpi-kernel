@@ -3,20 +3,21 @@
 
 pub mod interrupts;
 
-mod ringbuf;
-mod keyboard;
 mod gpio;
 mod timer;
 #[macro_use] mod uart;
 mod reset;
+mod ringbuf;
+mod keyboard;
 
 mod console;
+use self::console::Console;
 
 use core::fmt::Arguments;
 
 mod gl;
 
-static mut console: console::Console = console::Console { row: 0, col: 0 };
+static mut global_console: Option<Console> = None;
 
 #[no_mangle]
 pub extern fn main() {
@@ -25,10 +26,13 @@ pub extern fn main() {
     uart::init();
     keyboard::init();
     gl::init();
-    
+
     interrupts::enable();
 
-    unsafe { console.run(); }
+    unsafe {
+        global_console = Some(Console::new());
+        global_console.as_mut().unwrap().run();
+    }
 }
 
 const RPI_VECTOR_START: u32 = 0x0;
@@ -49,15 +53,18 @@ pub extern fn prologue(table_start: isize, table_end: isize) {
 }
 
 #[lang = "eh_personality"] extern fn eh_personality() {}
-#[lang = "panic_fmt"] extern fn panic_fmt(fmt: Arguments, file_line: &(&'static str, u32)) {
+#[lang = "panic_fmt"] extern fn panic_fmt(fmt: Arguments, file: &str, line: u32) {
+    gpio::act();
+
+    let console = unsafe { global_console.as_mut().unwrap() };
     use core::fmt::Write;
-    unsafe {
-        console.write_str("\n");
-        console.write_fmt(fmt);
-        console.write_str("\n");
-    }
+
+    console.write_fmt(format_args!("\n\nPANIC in {} at line {}:", file, line));
+    console.write_fmt(format_args!("\n    {}", fmt));
+
     loop {
-        uart::get_uart().write_fmt(fmt);
+        println!("\n\nPANIC in {} at line {}:", file, line);
+        println!("    {}", fmt);
 
         timer::sleep(5000000);
         reset::reset();

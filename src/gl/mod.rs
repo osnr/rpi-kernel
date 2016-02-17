@@ -78,8 +78,10 @@ pub fn put_char(c: u8, x: usize, y: usize) {
     let glyph: [u8; 13] = font::FONT[c as usize - 32];
 
     for row in 0..font::HEIGHT {
+        let glyph_row = glyph[row];
+
         for col in 0..font::WIDTH {
-            let pixel_bw = (glyph[row] >> col) & 1;
+            let pixel_bw = (glyph_row >> col) & 1;
 
             let color =
                 if pixel_bw == 0 {
@@ -88,7 +90,7 @@ pub fn put_char(c: u8, x: usize, y: usize) {
                     0xFFFFFFFF
                 };
 
-            put_pixel(color, x + 8 - col, y + 12 - row);
+            put_pixel(color, x + font::WIDTH - 1 - col, y + font::HEIGHT - 1 - row);
         }
     }
 }

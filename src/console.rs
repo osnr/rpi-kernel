@@ -1,4 +1,6 @@
 use core::str;
+use core::fmt;
+use core::fmt::Write;
 
 use uart;
 use keyboard;
@@ -9,11 +11,15 @@ use reset;
 use gpio;
 
 pub struct Console {
-    pub row: usize,
-    pub col: usize,
+    row: usize,
+    col: usize,
 }
 
 impl Console {
+    pub fn new() -> Console {
+        Console { row: 0, col: 0 }
+    }
+
     pub fn run(&mut self) {
         self.println("hello");
 
@@ -43,7 +49,13 @@ impl Console {
         }
     }
     fn putchar(&mut self, c: u8) {
-        if c >= 32 && (c + 32) < 95 {
+        if self.row * (font::HEIGHT + 1) >= gl::HEIGHT {
+            gl::clear();
+            self.row = 0;
+            self.col = 0;
+        }
+
+        if c >= 32 && (c - 32) < 95 {
             gl::put_char(c, self.col * font::WIDTH, self.row * font::HEIGHT);
 
             self.col += 1;
@@ -53,12 +65,6 @@ impl Console {
             }
         } else if c == '\n' as u8 {
             self.row += 1;
-            self.col = 0;
-        }
-
-        if self.row * font::HEIGHT >= gl::HEIGHT {
-            gl::clear();
-            self.row = 0;
             self.col = 0;
         }
     }
@@ -74,7 +80,22 @@ impl Console {
                 continue
             };
 
+            uart::putc(c);
+
             match c as char {
+                '\x08' => {
+                    // Backspace.
+                    if self.col >= 2 {
+                        self.col -= 1;
+                        self.putchar(' ' as u8);
+                        self.col -= 1;
+
+                        i -= 1;
+                    } else {
+                        self.col = 0;
+                        i = 0;
+                    }
+                },
                 '\n' => {
                     self.putchar(c);
                     return;

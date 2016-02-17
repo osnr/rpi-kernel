@@ -34,7 +34,7 @@ impl<T: Copy> Buf<T> {
             panic!();
         }
 
-        self.elems[self.head] = Some(elem);
+        self.elems[self.tail] = Some(elem);
         self.tail = next_tail;
     }
 }

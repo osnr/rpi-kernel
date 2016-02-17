@@ -68,6 +68,10 @@ pub fn write(pin: Pin, value: bool) {
         unsafe { volatile_store(led_off, 1 << pin_num); }
     }
 }
+pub fn act() { // Used for debugging.
+    write(Pin::Rx, true);
+}
+
 pub fn read(pin: Pin) -> bool {
     let pin_num = pin as u32;
     let reg = if pin_num <= 31 {
