@@ -12,11 +12,13 @@ ring buffer are fairly nice, though.
 ![Image](image.jpg)
 
 This is a bare-metal program that runs on the Raspberry Pi. It's like
-an operating system.
+an operating system. (If an operating system has two jobs --
+hardware abstraction and multiplexing resources -- we might say that
+this thing does one of the two.)
 
-You copy it to a SD card, put it in the Pi, and turn the thing on
-(_note: I think you actually need to use a bootloader right now_), and
-plug it into an HDMI monitor and a PS/2 keyboard.
+You copy it to a SD card, put it in the Pi, and turn the Pi on (_note:
+I think you actually need to use a bootloader right now_), and plug it
+into an HDMI monitor and a PS/2 keyboard.
 
 It gives you a console. It talks to the Pi's video card, to the UART
 peripheral on the board, and to a PS/2 keyboard. You can type and see
